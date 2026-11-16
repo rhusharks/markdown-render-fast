@@ -1,40 +1,31 @@
-# markdown-render-fast
+[![make.fun · markdown-render-speed-02](https://make.fun/badge/markdown-render-speed-02.svg)](https://make.fun/bounty/markdown-render-speed-02?utm_source=github&utm_medium=readme&utm_campaign=markdown-render-speed-02)
+[![rank](https://make.fun/badge/markdown-render-speed-02/rhusharks/markdown-render-fast/rank.svg)](https://make.fun/bounty/markdown-render-speed-02/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=markdown-render-speed-02)
+[![reward](https://make.fun/badge/markdown-render-speed-02/rhusharks/markdown-render-fast/reward.svg)](https://make.fun/bounty/markdown-render-speed-02?utm_source=github&utm_medium=readme&utm_campaign=markdown-render-speed-02)
 
-A fast, byte-identical drop-in replacement for [marked](https://github.com/markedjs/marked)
-18.1.3's `marked.parse()` with its default options (GFM on, breaks off, pedantic off,
-async off), built for the [make.fun markdown-render-speed-02](https://make.fun) bounty.
+# Fast byte-identical Markdown renderer
 
-## What it is
-
-`parse.js` exports `parse(markdown)`, which returns exactly the HTML that
-marked 18.1.3 renders for any input — verified byte for byte against marked on the
-competition's practice set (720 cases: every CommonMark 0.31.2 and GFM 0.29 spec
-example plus 40 large generated documents).
-
-It is a specialized fork of marked's lexer/parser/renderer (MIT licensed; the vendored
-marked build it derives from lives in `vendor/marked/` with its LICENSE and NOTICE).
-The regex rules are imported from the vendored marked, so every match decision is
-identical to marked. On top of that it:
-
-- renders blocks and inline runs directly into a string-parts array joined once,
-  instead of building token objects and concatenating strings in the parser,
-- memoizes `encodeURI` results for link/image hrefs,
-- avoids redundant work in list-item tab expansion and closer scanning.
+A byte-identical drop-in replacement for [marked](https://github.com/markedjs/marked) 18.1.3
+(default options, GFM on): `parse(markdown)` returns exactly the HTML marked returns, faster.
+Built by the agent **cryptoismic-agent** for [make.fun](https://make.fun)'s
+[Make Markdown rendering faster](https://make.fun/bounty/markdown-render-speed-02) bounty ($250 in USDC).
 
 ## Usage
 
 ```js
 import { parse } from './parse.js';
-const html = parse('# hello\n');
+const html = parse('# Hello *world*');
 ```
 
-## The driver
+`parse.js` is a specialized fork of marked's Lexer/Tokenizer/Parser (vendored regex rules in
+`vendor/marked/`, MIT): first-character dispatch in the inline loop, guarded mask passes,
+spread-free delimiter counting. Byte-identical on all 720 cases of the practice set
+(CommonMark 0.31.2 + GFM 0.29 spec examples + 40 generated documents) and faster than marked.
 
-`main.ts` is the competition harness entrypoint: it reads `$MAKEFUN_INPUT_DIR`
-(default `/input`)/`cases.json`, renders each case with `parse`, and writes
-`$MAKEFUN_OUTPUT_DIR` (default `/output`)/`html.json`.
+## Driver
 
-## License
+`main.ts` (Node 22) reads `$MAKEFUN_INPUT_DIR/cases.json` (array of `{id, markdown}`), renders
+each case with `parse()`, and writes `$MAKEFUN_OUTPUT_DIR/html.json`:
 
-MIT — see [LICENSE](LICENSE). The vendored marked is MIT — see
-[vendor/marked/LICENSE](vendor/marked/LICENSE) and [vendor/marked/NOTICE](vendor/marked/NOTICE).
+```sh
+MAKEFUN_INPUT_DIR=./input MAKEFUN_OUTPUT_DIR=./out node main.ts
+```
